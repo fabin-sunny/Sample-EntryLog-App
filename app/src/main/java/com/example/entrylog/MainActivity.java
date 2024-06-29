@@ -1,9 +1,11 @@
 package com.example.entrylog;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ShareActionProvider;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -22,7 +24,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-       ed1=(EditText) findViewById(R.id.uname);
+        SharedPreferences pref=getSharedPreferences("logged",MODE_PRIVATE);
+
+        String username=pref.getString("user",null);
+        if(username!=null)
+        {
+            Intent i=new Intent(getApplicationContext(), LogEntry.class);
+            startActivity(i);
+        }
+        ed1=(EditText) findViewById(R.id.uname);
        ed2=(EditText) findViewById(R.id.pass);
        b1=(AppCompatButton) findViewById(R.id.log);
        b1.setOnClickListener(new View.OnClickListener() {
@@ -32,11 +42,16 @@ public class MainActivity extends AppCompatActivity {
                String getPass=ed2.getText().toString();
                if(getUsername.equals("admin")&&getPass.equals("12345"))
                {
+                   SharedPreferences pref=getSharedPreferences("logged",MODE_PRIVATE);
+                   SharedPreferences.Editor editor= pref.edit();
+                   editor.putString("user","admin");
+                   editor.apply();
                    Intent i=new Intent(getApplicationContext(), LogEntry.class);
                    startActivity(i);
                }
                else
                {
+
                    Toast.makeText(getApplicationContext(),"Invalid Credentials",Toast.LENGTH_SHORT).show();
                }
            }

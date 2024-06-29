@@ -1,7 +1,9 @@
 package com.example.entrylog;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -13,9 +15,17 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class LogEntry extends AppCompatActivity {
-    EditText ed1,ed2,ed3,ed4;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
     AppCompatButton b1,b2;
+    String apiUrl="http://10.0.4.16:3000/api/students";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,18 +40,48 @@ public class LogEntry extends AppCompatActivity {
 
         b1.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v){
-                    try{
+                public void onClick(View v) {
                         String getName = ed1.getText().toString();
                         String getAddno = ed2.getText().toString();
                         String getSysno = ed3.getText().toString();
                         String getDept = ed4.getText().toString();
-                        Toast.makeText(getApplicationContext(), getName + " " + getAddno + " " + getSysno + " " + getDept, Toast.LENGTH_SHORT).show();
+
+                        //creating JSON object
+                        JSONObject student = new JSONObject();
+                    try {
+                        student.put("name", getName);
+                        student.put("admission_number", getAddno);
+                        student.put("system_number", getSysno);
+                        student.put("department", getDept);
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
                     }
-                    catch (Exception e)
-                    {
-                        Toast.makeText(getApplicationContext(),"INVALID",Toast.LENGTH_SHORT).show();
-                    }
+
+
+                    //JSON object request creation
+                    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                            Request.Method.POST,
+                            apiUrl,
+                                                student,
+                                                new Response.Listener<JSONObject>() {
+                                                    @Override
+                                                    public void onResponse(JSONObject response) {
+                                                        Toast.makeText(getApplicationContext(), "Added Successfully", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                },
+                                                new Response.ErrorListener() {
+                                                    @Override
+                                                    public void onErrorResponse(VolleyError error) {
+                                                        Toast.makeText(getApplicationContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+
+                                                    }
+                                                }
+
+                    );
+
+                    //Request Queue
+                    RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+                    requestQueue.add(jsonObjectRequest);
                 }
             });
 
@@ -49,6 +89,10 @@ public class LogEntry extends AppCompatActivity {
         b2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SharedPreferences pref=getSharedPreferences("logged",MODE_PRIVATE);
+                SharedPreferences.Editor editor= pref.edit();
+                editor.clear();
+                editor.apply();
                 Intent i=new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(i);
             }
